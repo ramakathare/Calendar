@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="CalendarEventsModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityContainer Name="CalendarEventsModelStoreContainer">
+          <EntitySet Name="CalendarEvents" EntityType="CalendarEventsModel.Store.CalendarEvents" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="MeetingType" EntityType="CalendarEventsModel.Store.MeetingType" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Users" EntityType="CalendarEventsModel.Store.Users" store:Type="Tables" store:Schema="dbo" store:Name="Users">
+            <DefiningQuery>SELECT 
+      [Users].[id] AS [id], 
+      [Users].[name] AS [name], 
+      [Users].[email] AS [email]
+      FROM [dbo].[Users] AS [Users]</DefiningQuery>
+          </EntitySet>
+        </EntityContainer>
+        <EntityType Name="CalendarEvents">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="text" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="location" Type="nchar" MaxLength="10" />
+          <Property Name="start_date" Type="datetime" Nullable="false" />
+          <Property Name="end_date" Type="datetime" Nullable="false" />
+          <Property Name="type" Type="nvarchar" MaxLength="50" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="rec_type" Type="nvarchar" MaxLength="200" />
+          <Property Name="event_length" Type="bigint" />
+          <Property Name="event_pid" Type="bigint" />
+          <Property Name="rec_pattern" Type="nvarchar" MaxLength="200" />
+          <Property Name="attendees" Type="nvarchar" MaxLength="100" />
+          <Property Name="agenda" Type="varbinary(max)" />
+        </EntityType>
+        <EntityType Name="MeetingType">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="type" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <!--Errors Found During Generation:
+      warning 6002: The table/view 'CalendarEvents.dbo.Users' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.
+      -->
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="nvarchar" MaxLength="100" />
+          <Property Name="email" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="CalendarEventsModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="CalendarEventsEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="MeetingTypes" EntityType="CalendarEventsModel.MeetingType" />
+          <EntitySet Name="Users" EntityType="CalendarEventsModel.User" />
+          <EntitySet Name="CalendarEvents" EntityType="CalendarEventsModel.CalendarEvent" />
+        </EntityContainer>
+        <EntityType Name="MeetingType">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="type" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="User">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="email" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="CalendarEvent">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Type="Int64" Name="id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="text" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="location" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Type="DateTime" Name="start_date" Nullable="false" />
+          <Property Type="DateTime" Name="end_date" Nullable="false" />
+          <Property Type="String" Name="type" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="description" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="rec_type" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Type="Int64" Name="event_length" />
+          <Property Type="Int64" Name="event_pid" />
+          <Property Type="String" Name="rec_pattern" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="attendees" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Type="Binary" Name="agenda" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="CalendarEventsModelStoreContainer" CdmEntityContainer="CalendarEventsEntities">
+          <EntitySetMapping Name="MeetingTypes"><EntityTypeMapping TypeName="CalendarEventsModel.MeetingType"><MappingFragment StoreEntitySet="MeetingType">
+            <ScalarProperty Name="id" ColumnName="id" />
+            <ScalarProperty Name="type" ColumnName="type" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Users"><EntityTypeMapping TypeName="CalendarEventsModel.User"><MappingFragment StoreEntitySet="Users">
+            <ScalarProperty Name="id" ColumnName="id" />
+            <ScalarProperty Name="name" ColumnName="name" />
+            <ScalarProperty Name="email" ColumnName="email" />
+          </MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="CalendarEvents">
+            <EntityTypeMapping TypeName="CalendarEventsModel.CalendarEvent">
+              <MappingFragment StoreEntitySet="CalendarEvents">
+                <ScalarProperty Name="agenda" ColumnName="agenda" />
+                <ScalarProperty Name="attendees" ColumnName="attendees" />
+                <ScalarProperty Name="rec_pattern" ColumnName="rec_pattern" />
+                <ScalarProperty Name="event_pid" ColumnName="event_pid" />
+                <ScalarProperty Name="event_length" ColumnName="event_length" />
+                <ScalarProperty Name="rec_type" ColumnName="rec_type" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="type" ColumnName="type" />
+                <ScalarProperty Name="end_date" ColumnName="end_date" />
+                <ScalarProperty Name="start_date" ColumnName="start_date" />
+                <ScalarProperty Name="location" ColumnName="location" />
+                <ScalarProperty Name="text" ColumnName="text" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram Name="CalenderModal">
+        <EntityTypeShape EntityType="CalendarEventsModel.MeetingType" Width="1.5" PointX="2.75" PointY="0.75" Height="1.4033821614583335" IsExpanded="true" />
+        <EntityTypeShape EntityType="CalendarEventsModel.User" Width="1.5" PointX="2.75" PointY="3.75" Height="1.5956835937499996" IsExpanded="true" />
+        <EntityTypeShape EntityType="CalendarEventsModel.CalendarEvent" Width="1.5" PointX="5.375" PointY="0.75" Height="3.5186979166666656" />
+      </Diagram>
+    </Diagrams>
+  </Designer>
+</edmx:Edmx>

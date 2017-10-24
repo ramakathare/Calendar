@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="CalendarEventsModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+  <EntityContainer Name="CalendarEventsModelStoreContainer">
+    <EntitySet Name="CalendarEvents" EntityType="CalendarEventsModel.Store.CalendarEvents" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="MeetingType" EntityType="CalendarEventsModel.Store.MeetingType" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Users" EntityType="CalendarEventsModel.Store.Users" store:Type="Tables" store:Schema="dbo" store:Name="Users">
+      <DefiningQuery>SELECT 
+      [Users].[id] AS [id], 
+      [Users].[name] AS [name], 
+      [Users].[email] AS [email]
+      FROM [dbo].[Users] AS [Users]</DefiningQuery>
+    </EntitySet>
+  </EntityContainer>
+  <EntityType Name="CalendarEvents">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+    <Property Name="text" Type="nvarchar" Nullable="false" MaxLength="50" />
+    <Property Name="location" Type="nchar" MaxLength="10" />
+    <Property Name="start_date" Type="datetime" Nullable="false" />
+    <Property Name="end_date" Type="datetime" Nullable="false" />
+    <Property Name="type" Type="nvarchar" MaxLength="50" />
+    <Property Name="description" Type="nvarchar(max)" />
+    <Property Name="rec_type" Type="nvarchar" MaxLength="200" />
+    <Property Name="event_length" Type="bigint" />
+    <Property Name="event_pid" Type="bigint" />
+    <Property Name="rec_pattern" Type="nvarchar" MaxLength="200" />
+    <Property Name="attendees" Type="nvarchar" MaxLength="100" />
+    <Property Name="agenda" Type="varbinary(max)" />
+  </EntityType>
+  <EntityType Name="MeetingType">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+    <Property Name="type" Type="nvarchar" MaxLength="50" />
+  </EntityType>
+  <!--Errors Found During Generation:
+      warning 6002: The table/view 'CalendarEvents.dbo.Users' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.
+      -->
+  <EntityType Name="Users">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+    <Property Name="name" Type="nvarchar" MaxLength="100" />
+    <Property Name="email" Type="nvarchar" MaxLength="100" />
+  </EntityType>
+</Schema>

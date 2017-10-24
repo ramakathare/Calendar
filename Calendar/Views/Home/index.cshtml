@@ -1,0 +1,494 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>How to start</title>
+    <script src="~/scheduler/dhtmlxscheduler.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_recurring.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_minical.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_key_nav.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_limit.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_multiselect.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_editors.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxcombo.js" type="text/javascript"></script>
+    <script src="~/scheduler/ext/dhtmlxscheduler_multiselect.js" type="text/javascript"></script>
+    
+    
+   <script src="~/Scripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+   <script src="~/Scripts/jquery.blockUI.js" type="text/javascript"></script>
+   <script src="~/Content/chosen/chosen.jquery.min.js" type="text/javascript"></script>
+   <script src="../../Scripts/jquery-ui-1.8.20.min.js" type="text/javascript"></script>
+  
+   <script type="text/javascript">
+       $j = jQuery.noConflict(true);
+   </script>
+
+   <script src="~/scheduler/MyScripts.js" type="text/javascript"></script>
+
+   <link rel="stylesheet" href="~/scheduler/dhtmlxscheduler.css" type="text/css">
+   <link rel="stylesheet" href="~/scheduler/dhtmlxcombo.css" type="text/css">
+   <link href="~/Content/chosen/chosen.min.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+   <link href="../../Content/themes/base/jquery.ui.dialog.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/Site.css" rel="stylesheet" type="text/css" />
+
+   <style type="text/css" media="screen">
+	html, body{
+		margin:0px;
+		padding:0px;
+		height:100%;
+		overflow:hidden;
+	}	
+</style>
+</head>
+<body onload="init();">
+    <div class="ajaxDiv" id="ajaxDivId"></div>
+	<div id="scheduler_here" class="dhx_cal_container" style='width:100%; height:100%;'>
+		<div class="dhx_cal_navline">
+			<div class="dhx_cal_prev_button">&nbsp;</div>
+			<div class="dhx_cal_next_button">&nbsp;</div>
+			<div class="dhx_cal_today_button"></div>
+			<div class="dhx_cal_date"></div>
+            <div class="dhx_minical_icon" id="dhx_minical_icon" onclick="show_minical()">&nbsp;</div>
+			<div class="dhx_cal_tab" name="day_tab" style="right:204px;"></div>
+			<div class="dhx_cal_tab" name="week_tab" style="right:140px;"></div>
+			<div class="dhx_cal_tab" name="month_tab" style="right:76px;"></div>
+		</div>
+		<div class="dhx_cal_header">
+		</div>
+		<div class="dhx_cal_data">
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+    //    $j(function () {
+    //        ajaxManager.run();
+    //    });
+
+    var currentAddedid = 0;
+    var eventUnderProgress;
+    // http://docs.dhtmlx.com/scheduler/samples/
+    //http://docs.dhtmlx.com/scheduler/recurring_events.html
+    //http://docs.dhtmlx.com/scheduler/samples/03_extensions/26_multi_day_visible.html
+    //http://docs.dhtmlx.com/scheduler/jquery_integration.html
+
+
+    function init() {
+
+        scheduler.config.details_on_dblclick = true;
+        scheduler.config.details_on_create = true;
+
+        scheduler.config.xml_date = "%Y-%n-%d %H:%i";
+        scheduler.config.prevent_cache = true;
+        scheduler.config.full_day = true;
+
+        scheduler.config.buttons_left = ["dhx_save_btn", "dhx_cancel_btn", "send_invitation"]
+
+        scheduler.config.event_duration = 60; //specify event duration in minutes for auto end time
+        scheduler.config.auto_end_date = true;
+
+        scheduler.config.start_on_monday = false;
+
+        scheduler.locale.labels.section_type = "Type";
+        scheduler.locale.labels.section_attendees = "Participants";
+        scheduler.locale.labels["send_invitation"] = "Send Invitation";
+
+        scheduler.form_blocks["my_editor"] = {
+            render: function (sns) {
+                html = "<div class='dhx_cal_ltext' style='height:29px;'><select data-placeholder='Add Participants' multiple>";
+                $j.each(scheduler.serverList("attendees"), function (i, x) {
+                    html += "<option value=" + x.key + ">" + x.label + "</option>";
+                });
+                html += "</select></div>";
+                return html;
+            },
+            set_value: function (node, value, ev) {
+                if (typeof (value) != "undefined") {
+                    $j.each(value.split(","), function (i, e) {
+                        $j(node).children("select").children("option[value='" + e + "']").attr("selected", true);
+                    });
+                }
+            },
+            get_value: function (node, ev) {
+                result = "";
+                $j.each($j(node).children("select").children("option:selected"), function (i, e) {
+                    if (result != "") result += ",";
+                    result += $j(e).val();
+                });
+                return result;
+            },
+            focus: function (node) {
+                //                var a = node.childNodes[1];  a.select(); a.focus();
+            }
+        };
+
+        scheduler.config.lightbox.sections = [
+			{ name: "description", height: 200, map_to: "text", type: "textarea", focus: true },
+			{ name: "recurring", height: 115, type: "recurring", map_to: "rec_type", button: "recurring" },
+            { name: "type", height: 21, map_to: "type", type: "select", filtering: true, options: scheduler.serverList("type") },
+            { name: "attendees", height: 21, map_to: "attendees", type: "my_editor", filtering: true, options: scheduler.serverList("attendees") },
+            { name: "time", height: 72, type: "calendar_time", map_to: "auto" }
+		];
+
+        scheduler.attachEvent("onEventChanged", function (id, e) {
+            add_update_event(id, e, 'edit');
+        });
+
+        scheduler.attachEvent("onEventAdded", function (id, e) {
+            add_update_event(id, e, 'add');
+        });
+
+        scheduler.attachEvent("onBeforeEventDelete", function (id, e) {
+            eventUnderProgress = e;
+            return true;
+        });
+
+        scheduler.attachEvent("onEventDeleted", function (id) {
+            deleteEvent(id);
+        });
+
+        scheduler.attachEvent("onLightboxButton", function (button_id, node, e) {
+            var event_id = scheduler.getState().lightbox_id
+            var ev = scheduler.getEvent(event_id);
+            if (button_id == "send_invitation") {
+                sendEmail(ev);
+            }
+        });
+
+        scheduler.attachEvent("onBeforeLightbox", function (id) {
+
+            var e = scheduler.getEvent(id);
+
+            $j.ajax({
+                type: "POST",
+                url: "/Home/ShowEventEditor",
+                data: {
+                    id: e.id,
+                    text: e.text,
+                    start_date: e.start_date.format("isoDateTime"),
+                    end_date: e.end_date.format("isoDateTime"),
+                    type: e.type,
+                    rec_type: e.rec_type,
+                    event_length: e.event_length,
+                    event_pid: e.event_pid,
+                    rec_pattern: e.rec_pattern,
+                    attendees: e.attendees
+                },
+                success: function (data) {
+                    $j("#ajaxDivId").html(data).dialog({ width: 600, height: 400 });
+                },
+                error: function () {
+                }
+            });
+
+            return false;
+
+            if (!$j(scheduler.formSection('type').node).has(".chosen-container").length) {
+                $j(scheduler.formSection('type').node).children("select").chosen({
+                    no_results_text: "not found",
+                    allow_single_deselect: true,
+                    disable_search_threshold: 10,
+                    enable_split_word_search: true,
+                    single_backstroke_delete: true //).change(function(){$("#viewLeadsGrid").trigger('reloadGrid');});;
+                });
+            }
+            if (!$j(scheduler.formSection('attendees').node).has(".chosen-container").length) {
+                $j(scheduler.formSection('attendees').node).children("select").chosen({
+                    no_results_text: "not found",
+                    allow_single_deselect: true,
+                    disable_search_threshold: 10,
+                    enable_split_word_search: true,
+                    single_backstroke_delete: true //).change(function(){$("#viewLeadsGrid").trigger('reloadGrid');});;
+                });
+            }
+
+            var ev = scheduler.getEvent(id);
+
+
+
+            $j(scheduler.formSection('type').node).children(".chosen-container").attr("style", "width:400px;position:absolute");
+
+            $j(scheduler.formSection('type').node).children("select").val(ev.type);
+            $j(scheduler.formSection('type').node).children("select").trigger("chosen:updated");
+
+            $j(scheduler.formSection('type').node).parent().css("position", "inherit");
+            $j(scheduler.formSection('type').node).css("height", "28px");
+
+
+            $j(scheduler.formSection('attendees').node).children(".chosen-container").attr("style", "width:400px;position:absolute");
+
+            $j(scheduler.formSection('attendees').node).children("select").children("option:selected").removeAttr("selected");
+            if (typeof (ev.attendees) != "undefined") {
+                $j.each(ev.attendees.split(","), function (i, e) {
+                    $j(scheduler.formSection('attendees').node).children("select").children("option[value='" + e + "']").attr("selected", true);
+                });
+            }
+
+            $j(scheduler.formSection('attendees').node).children("select").trigger("chosen:updated");
+
+            $j(scheduler.formSection('attendees').node).parent().css("position", "inherit");
+            $j(scheduler.formSection('attendees').node).css("height", "28px");
+
+
+            return true;
+        });
+
+        scheduler.init('scheduler_here', new Date(), "week");
+        scheduler.load('/Home/GetCalendarData', 'json', function () {
+            //scheduler.showLightbox(2);
+        });
+
+    }
+
+    function show_minical() {
+        if (scheduler.isCalendarVisible())
+            scheduler.destroyCalendar();
+        else
+            scheduler.renderCalendar({
+                position: "dhx_minical_icon",
+                date: scheduler._date,
+                navigation: true,
+                handler: function (date, calendar) {
+                    scheduler.setCurrentView(date);
+                    scheduler.destroyCalendar()
+                }
+            });
+    }
+
+    function sendEmail(e) {
+
+        e.start_date = e.start_date.format("isoDateTime");
+        e.end_date = e.end_date.format("isoDateTime");
+
+        var obj = sanitize(e);
+
+        $j.ajax({
+            type: "POST",
+            url: "/Home/sendEmail",
+            datatype: "json",
+            data: obj,
+            success: function (data) {
+                //  alert(data.success);
+                if (!data.success) {
+                    alert("Error Occured : Invitation not sent");
+                }
+            },
+            error: function () {
+                alert("Error Occured : Invitation not sent");
+            }
+        });
+    }
+
+    function deleteEvent(id) {
+        //  ajaxManager.addReq({
+        // var e = scheduler.getEvent(id);
+
+        $j.ajax({
+            type: "POST",
+            url: "/Home/AddEvent?Op=del",
+            datatype: "json",
+            data: {
+                id: typeof (eventUnderProgress) != "undefined" ? eventUnderProgress.id : id,
+                rec_type: typeof (eventUnderProgress) != "undefined" ? eventUnderProgress.rec_type : "",
+                event_pid: typeof (eventUnderProgress) != "undefined" ? eventUnderProgress.event_pid : 0,
+                rec_pattern: typeof (eventUnderProgress) != "undefined" ? eventUnderProgress.rec_pattern : ""
+            },
+            success: function (data) {
+                typeof (eventUnderProgress) == "undefined";
+                if (!data.success) {
+                    alert("Error Occured : Refresh the calendar");
+                }
+            },
+            error: function () {
+                alert("Error Occured : Refresh the calendar");
+            }
+        });
+    }
+
+    function add_update_event(id, e, oper) {
+
+        //        e.start_date = e.start_date.format("isoDateTime");
+        //        e.end_date = e.end_date.format("isoDateTime");
+
+        //        var obj = sanitize(e);
+
+        var i = 0;
+        //  ajaxManager.addReq({
+        $j.ajax({
+            type: "POST",
+            url: "/Home/AddEvent",
+            datatype: "json",
+            data: {
+                id: e.id,
+                text: e.text,
+                start_date: e.start_date.format("isoDateTime"),
+                end_date: e.end_date.format("isoDateTime"),
+                type: e.type,
+                rec_type: e.rec_type,
+                event_length: e.event_length,
+                event_pid: e.event_pid,
+                rec_pattern: e.rec_pattern,
+                op: oper,
+                attendees: e.attendees
+            },
+            success: function (data) {
+                //  alert(data.success);
+                if (!data.success) {
+                    alert("Error Occured : Refresh the calendar");
+                }
+                if (data.i > 0) scheduler.changeEventId(id, data.i);
+            },
+            error: function () {
+                alert("Error Occured : Refresh the calendar");
+            }
+        });
+    }
+
+    //scheduler._dhtmlx_confirm("hello","hello",function(){alert("hello");})
+
+    //            if (!ev.child_id) {
+    //                var parent_id = ev.parent_id || parent_select_options[0].key;
+    //                var new_child_options = child_select_options[parent_id];
+    //                update_select_options(scheduler.formSection('child').control, new_child_options);
+    //            }
+
+    //        scheduler.attachEvent("onAfterLightbox", function () {
+
+    //        });
+
+    //        scheduler.attachEvent("onBeforeEventChanged", function (ev, e, flag, ev_old) {
+    //            alert(ev_old.text);
+    //            eventUnderProgress = ev_old;
+    //            return true;
+    //        });
+
+
+    //        scheduler.attachEvent("onEventCollision", function (id, evs) {
+    //            return false;
+    //        });
+    //        scheduler.attachEvent("onEventCreated", function (id, e) {
+    //            scheduler.edit(id);
+    //            //scheduler.showLightbox(e.id);
+    //            //alert(id);
+    //        });
+
+    //        scheduler.addMarkedTimespan({
+    //            days: 0,               // marks each Sunday
+    //            zones: "fullday",       // marks the entire day
+    //            css: "gray_section"   // the applied css style
+    //        });
+
+    //        scheduler.updateView();
+
+    //        scheduler.blockTime(0, "fullday");
+
+    //    scheduler.config.first_hour = 8;
+    //    scheduler.config.last_hour = 17;
+
+    //        dhtmlXTooltip.config.className = 'dhtmlXTooltip tooltip';
+    //        dhtmlXTooltip.config.timeout_to_display = 50;
+    //        dhtmlXTooltip.config.delta_x = 15;
+    //        dhtmlXTooltip.config.delta_y = -20;
+
+    //[type]_[count]_[day]_[count2]_[days]#[extra]
+
+    /* 
+    type - the type of repeation: 'day','week','month','year'.
+    count - the interval between events in the "type" units.
+    day and count2 - define a day of a month ( first Monday, third Friday, etc ).
+    days - the comma-separated list of affected week days.
+    extra - the extra info that can be used to change presentation of recurring details. */
+
+
+    //timshift=-330
+
+    // scheduler.updateView();
+    // scheduler.config.multi_day = true;
+
+    //        scheduler.config.details_on_dblclick = true;
+    //        scheduler.config.details_on_create = true;
+    //        scheduler.config.drag_create = false;
+
+    //            scheduler.attachEvent("onTemplatesReady", function () {
+    //                var lightbox_form = scheduler.getLightbox(); // this will generate lightbox form
+    //                var inputs = lightbox_form.getElementsByTagName('input');
+    //                var date_of_end = null;
+    //                for (var i = 0; i < inputs.length; i++) {
+    //                    if (inputs[i].name == "date_of_end") {
+    //                        date_of_end = inputs[i];
+    //                        break;
+    //                    }
+    //                }
+
+    //                var repeat_end_date_format = scheduler.date.date_to_str("%d.%m.%Y");
+    //                var show_minical1 = function () {
+    //                    if (scheduler.isCalendarVisible())
+    //                        scheduler.destroyCalendar();
+    //                    else {
+    //                        scheduler.renderCalendar({
+    //                            position: date_of_end,
+    //                            date: scheduler._date,
+    //                            navigation: true,
+    //                            handler: function (date, calendar) {
+    //                                date_of_end.value = repeat_end_date_format(date);
+    //                                scheduler.destroyCalendar()
+    //                            }
+    //                        });
+    //                    }
+    //                };
+    //                date_of_end.onclick = show_minical1;
+
+    //            });
+
+    function submitFinished(result) {
+        //        if (result.success) {
+        //            alert("1 "+result.ev.id);
+        //            alert(result.op);
+        //            alert(result.oldId);
+        //        } else {
+        //            alert("2 "+result.op);
+        //            alert(result.oldId);
+        //        }
+        if (result.success) {
+            if (result.op.indexOf("add") >= 0) {
+                scheduler.changeEventId(result.oldId, result.ev.id);
+            }
+            CustomUpdateEvent(result.ev);
+        } else {
+            submitFailed(result);
+        }
+
+    }
+    function CustomUpdateEvent(ev) {
+
+        var oldEvent = scheduler.getEvent(ev.id)
+
+        oldEvent.id = ev.id;
+        oldEvent.text = ev.text;
+        oldEvent.start_date = ev.start_date,
+        oldEvent.end_date = ev.end_date,
+        oldEvent.type = ev.type;
+        oldEvent.rec_type = ev.rec_type;
+        oldEvent.event_length = ev.event_length;
+        oldEvent.event_pid = ev.event_pid;
+        oldEvent.rec_pattern = ev.rec_pattern;
+        oldEvent.attendees = ev.attendees
+
+        scheduler.updateEvent(oldEvent.id);
+    }
+
+    function submitFailed(result) {
+        alert("error occured");
+        if (result.op.indexOf("add") >= 0) {
+            scheduler.deleteEvent(result.oldId);
+        }
+    }
+
+    $j(document).ajaxStart($j.blockUI).ajaxStop($j.unblockUI);
+</script>
+</html>
